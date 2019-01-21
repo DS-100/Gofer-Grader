@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'jinja2',
         'pygments',
-        'tornado'
+        'tornado',
+        'beautifulsoup4'
     ]
 )

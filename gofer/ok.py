@@ -15,6 +15,7 @@ from pygments import highlight
 from pygments.lexers import PythonConsoleLexer
 from pygments.formatters import HtmlFormatter
 
+from bs4 import BeautifulSoup
 
 
 def run_doctest(name, doctest_string, global_environment):
@@ -181,7 +182,6 @@ class OKTestsResult:
     {% endif %}
     """)
 
-
     def __init__(self, grade, paths, tests, passed_tests, failed_tests, include_grade=True):
         self.grade = grade
         self.paths = paths
@@ -199,6 +199,9 @@ class OKTestsResult:
             include_grade=self.include_grade
         )
 
+    def __repr__(self):
+        html = self._repr_html_()
+        return BeautifulSoup(html, "lxml").get_text()
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     """Used to generate a dynamic variable name for grading functions"""
@@ -247,7 +250,7 @@ def grade_notebook(notebook_path, tests_glob=None):
     # avoid divide by zero error if there are no tests
     score = sum([r.grade for r in test_results])/max(len(test_results), 1)
 
-    # If within an IPython or Jupyter environment, display hints
+    # If within an IPython or Jupyter environment, eisplay hints
     display_defined = False
     try:
         __IPYTHON__
