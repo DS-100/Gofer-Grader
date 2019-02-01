@@ -2,6 +2,7 @@ from contextlib import redirect_stderr, redirect_stdout
 import inspect
 from .utils import hide_outputs
 import ast
+import re
 
 try:
     from IPython.core.inputsplitter import IPythonInputSplitter
@@ -31,14 +32,12 @@ def find_check_assignment(tree):
         # check id for tuple target
         target_names = []
         for target in stmt.targets:
-            try:
-                if isinstance(target, tuple):
-                    target_names += [t.id for t in target]
-                elif isinstance(target, ast.Tuple) or isinstance(target, ast.List):
-                    target_names += [t.id for t in target.elts]
-                else:
-                    target_names.append(target.id)
-            except: pass
+            if isinstance(target, tuple):
+                target_names += [t.id for t in target]
+            elif isinstance(target, ast.Tuple) or isinstance(target, ast.List):
+                target_names += [t.id for t in target.elts]
+            else:
+                target_names.append(target.id)
         if 'check' in target_names:
             return True
     return False
@@ -72,6 +71,14 @@ class CheckCallWrapper(ast.NodeTransformer):
             return node
 
 
+ok_grade_test_item = re.compile('ok.grade\(\"([\w]+)\"\);')
+def ok_grade_to_check(line):
+    matched = re.match(ok_grade_test_item, line)
+    if matched:
+        return f'check("tests/{matched.group(1)}.py")'
+    return line
+
+
 def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False):
     """
     Execute notebook & return the global environment that results from execution.
@@ -96,6 +103,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
         # (e.g. code runs up to the point of execution).
         # The reason this is workaround is introduced is because once the
         # source code is parsed into an AST, there is no sense of local cells
+        exec("from gofer.ok import check", global_env)
 
         for cell in nb['cells']:
             if cell['cell_type'] == 'code':
@@ -107,7 +115,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                     for line in cell['source']:
                         # Filter out ipython magic commands
                         if not line.startswith('%'):
-                            code_lines.append(line)
+                            code_lines.append(ok_grade_to_check(line))
                     cell_source = isp.transform_cell(''.join(code_lines))
                     exec(cell_source, global_env)
                     source += cell_source

@@ -75,12 +75,13 @@ class OKTest:
     <p><strong>Test result:</strong><pre>{{test_result}}</pre></p>
     """)
 
-    def __init__(self, name, tests):
+    def __init__(self, name, tests, points=1.0):
         """
         tests is list of doctests that should be run.
         """
         self.name = name
         self.tests = tests
+        self.points = points
 
     def run(self, global_environment):
         for i, t in enumerate(self.tests):
@@ -114,7 +115,7 @@ class OKTest:
         assert len(test_spec['suites']) == 1
 
         # Do not support point values other than 1
-        assert test_spec.get('points', 1) == 1
+        # assert test_spec.get('points', 1) == 1
 
         test_suite = test_spec['suites'][0]
 
@@ -130,25 +131,30 @@ class OKTest:
         for i, test_case in enumerate(test_spec['suites'][0]['cases']):
             tests.append(dedent(test_case['code']))
 
-        return cls(path, tests)
+        return cls(path, tests, test_spec.get('points', 1.0))
 
 
 class OKTests:
     def __init__(self, test_paths):
         self.paths = test_paths
         self.tests = [OKTest.from_file(path) for path in self.paths]
+        self.points = [t.points for t in self.tests]
 
     def run(self, global_environment, include_grade=True):
         passed_tests = []
         failed_tests = []
-        for t in self.tests:
+        pointed_awarded = []
+        for i, t in enumerate(self.tests):
             passed, hint = t.run(global_environment)
             if passed:
                 passed_tests.append(t)
+                pointed_awarded.append(self.points[i])
             else:
                 failed_tests.append((t, hint))
+                pointed_awarded.append(0)
 
-        grade = len(passed_tests) / len(self.tests)
+        # grade = len(passed_tests) / len(self.tests)
+        grade = sum(pointed_awarded)
 
         return OKTestsResult(grade, self.paths, self.tests, passed_tests,
                              failed_tests, include_grade)
@@ -162,9 +168,7 @@ class OKTestsResult:
     {% if include_grade %}
     <strong>Grade: {{ grade }}</strong>
     {% endif %}
-    {% if grade == 1.0 %}
-        <p>All tests passed! Full grade.</p>
-    {% else %}
+
         <p>{{ passed_tests|length }} of {{ tests|length }} tests passed</p>
         {% if passed_tests %}
         <p> <strong>Tests passed:</strong>
@@ -179,7 +183,7 @@ class OKTestsResult:
             {% endfor %}
             </ul>
         {% endif %}
-    {% endif %}
+
     """)
 
     def __init__(self, grade, paths, tests, passed_tests, failed_tests, include_grade=True):
@@ -250,20 +254,21 @@ def grade_notebook(notebook_path, tests_glob=None):
     # avoid divide by zero error if there are no tests
     score = sum([r.grade for r in test_results])/max(len(test_results), 1)
 
-    # If within an IPython or Jupyter environment, eisplay hints
+    # If within an IPython or Jupyter environment, display hints
     display_defined = False
     try:
         __IPYTHON__
         display_defined = True
     except NameError:
         pass
+
     for i, result in enumerate(test_results):
         print("Question {}:".format(i+1),)
         if display_defined:
             display(result)
         else:
             print(result)
-    return score
+    return test_results
 
 
 def check(test_file_path, global_env=None):
