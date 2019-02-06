@@ -3,6 +3,7 @@ import inspect
 from .utils import hide_outputs
 import ast
 import re
+import logging
 
 try:
     from IPython.core.inputsplitter import IPythonInputSplitter
@@ -32,12 +33,16 @@ def find_check_assignment(tree):
         # check id for tuple target
         target_names = []
         for target in stmt.targets:
-            if isinstance(target, tuple):
-                target_names += [t.id for t in target]
-            elif isinstance(target, ast.Tuple) or isinstance(target, ast.List):
-                target_names += [t.id for t in target.elts]
-            else:
-                target_names.append(target.id)
+            try:
+                if isinstance(target, tuple):
+                    target_names += [t.id for t in target]
+                elif isinstance(target, ast.Tuple) or isinstance(target, ast.List):
+                    target_names += [t.id for t in target.elts]
+                else:
+                    target_names.append(target.id)
+            except Exception as e:
+                logging.error(e)
+
         if 'check' in target_names:
             return True
     return False
