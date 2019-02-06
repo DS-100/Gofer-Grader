@@ -70,7 +70,7 @@ class CheckCallWrapper(ast.NodeTransformer):
         # test case is if check is .check
         if isinstance(node.func, ast.Attribute):
             return node
-        elif node.func.id == 'check':
+        elif hasattr(node.func, "id") and node.func.id == 'check':
             return self.node_constructor(node)
         else:
             return node
