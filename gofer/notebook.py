@@ -4,6 +4,7 @@ from .utils import hide_outputs
 import ast
 import re
 import logging
+import traceback
 
 try:
     from IPython.core.inputsplitter import IPythonInputSplitter
@@ -49,6 +50,7 @@ def find_check_assignment(tree):
                     target_names.append(target.id)
             except Exception as e:
                 logging.error(e)
+                traceback.print_exc()
 
         if 'check' in target_names:
             return True
@@ -133,6 +135,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                     source += cell_source
                 except Exception as e:
                     logging.error(e)
+                    traceback.print_exc()
                     if not ignore_errors:
                         raise
 
@@ -156,6 +159,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                 exec(cleaned_source, global_env)
         except Exception as e:
             logging.error(e)
+            traceback.print_exc()
             if not ignore_errors:
                 raise
 
