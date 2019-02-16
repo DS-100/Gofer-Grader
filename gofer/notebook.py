@@ -156,6 +156,9 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
         except:
             if not ignore_errors:
                 raise
+
+        print(global_env)
+
         return global_env
 
 def _global_anywhere(varname):
