@@ -129,7 +129,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                         if not line.startswith('%'):
                             code_lines.append(ok_grade_to_check(line))
                     cell_source = isp.transform_cell(''.join(code_lines))
-                    exec(cell_source, global_env)
+                    # exec(cell_source, global_env)
                     source += cell_source
                 except:
                     if not ignore_errors:
