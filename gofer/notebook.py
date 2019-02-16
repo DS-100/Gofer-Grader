@@ -10,6 +10,11 @@ try:
 except ImportError:
     raise ImportError('IPython needs to be installed for notebook grading')
 
+import astor
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import TerminalFormatter
+
 
 def find_check_definition(tree):
     """Given an AST for a source, check for definitions of `check` function
@@ -137,6 +142,10 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
         transformer = CheckCallWrapper(secret)
         tree = transformer.visit(tree)
         ast.fix_missing_locations(tree)
+
+        new_source = astor.to_scoure(tree), add_line_information=True)
+        highlight = highlight(new_source, PythonLexer(), TerminalFormatter())
+        print(highlight)
 
         cleaned_source = compile(tree, filename="nb-ast", mode="exec")
         try:

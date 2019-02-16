@@ -12,6 +12,7 @@ setup(
         'jinja2',
         'pygments',
         'tornado',
-        'beautifulsoup4'
+        'beautifulsoup4',
+        'astor'
     ]
 )
