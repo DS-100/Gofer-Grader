@@ -144,8 +144,8 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
         ast.fix_missing_locations(tree)
 
         new_source = astor.to_source(tree, add_line_information=True)
-        highlight = highlight(new_source, PythonLexer(), TerminalFormatter())
-        print(highlight)
+        color_source = highlight(new_source, PythonLexer(), TerminalFormatter())
+        print(color_source)
 
         cleaned_source = compile(tree, filename="nb-ast", mode="exec")
         try:
