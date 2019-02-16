@@ -131,7 +131,8 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                     cell_source = isp.transform_cell(''.join(code_lines))
                     # exec(cell_source, global_env)
                     source += cell_source
-                except:
+                except Exception as e:
+                    logging.error(e)
                     if not ignore_errors:
                         raise
 
@@ -153,7 +154,8 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
         try:
             with open('/dev/null', 'w') as f, redirect_stdout(f), redirect_stderr(f):
                 exec(cleaned_source, global_env)
-        except:
+        except Exception as e:
+            logging.error(e)
             if not ignore_errors:
                 raise
 
