@@ -32,6 +32,8 @@ def find_check_assignment(tree):
     """Given an AST for a source, check for variable redefinition of `check`
 
     Returns True if such a definition is found, False otherwise."""
+    return False
+
     for stmt in ast.walk(tree):
         if not isinstance(stmt, ast.Assign):
             continue
