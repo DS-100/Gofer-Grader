@@ -92,7 +92,7 @@ def ok_grade_to_check(line):
         return f'check("tests/{matched.group(1)}.py")'
     return line
 
-def run_this_block(source, secret, global_env):
+def run_this_block(source, secret, global_env, ignore_errors):
     tree = ast.parse(source)
 
     # wrap check(..) calls into a check_results_X.append(check(..))
@@ -155,7 +155,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                             code_lines.append(ok_grade_to_check(line))
                     cell_source = isp.transform_cell(''.join(code_lines))
                     # exec(cell_source, global_env)
-                    run_this_block(cell_source, secret, global_env)
+                    run_this_block(cell_source, secret, global_env, ignore_errors)
 
                     source += cell_source
                 except Exception as e:
