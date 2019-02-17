@@ -92,6 +92,29 @@ def ok_grade_to_check(line):
         return f'check("tests/{matched.group(1)}.py")'
     return line
 
+def run_this_block(source, secret, global_env):
+    tree = ast.parse(source)
+
+    # wrap check(..) calls into a check_results_X.append(check(..))
+    transformer = CheckCallWrapper(secret)
+    tree = transformer.visit(tree)
+    ast.fix_missing_locations(tree)
+
+    new_source = astor.to_source(tree, add_line_information=True)
+    color_source = highlight(new_source, PythonLexer(), TerminalFormatter())
+    print(color_source)
+
+    cleaned_source = compile(tree, filename="nb-ast", mode="exec")
+    try:
+        with open('/dev/null', 'w') as f, redirect_stdout(f), redirect_stderr(f):
+            exec(cleaned_source, global_env)
+    except Exception as e:
+        logging.error(e)
+        traceback.print_exc()
+        if not ignore_errors:
+            raise
+
+
 
 def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False):
     """
@@ -132,36 +155,14 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
                             code_lines.append(ok_grade_to_check(line))
                     cell_source = isp.transform_cell(''.join(code_lines))
                     # exec(cell_source, global_env)
+                    run_this_block(cell_source, secret, global_env)
+
                     source += cell_source
                 except Exception as e:
                     logging.error(e)
                     traceback.print_exc()
                     if not ignore_errors:
                         raise
-
-        tree = ast.parse(source)
-        if find_check_assignment(tree) or find_check_definition(tree):
-            # an empty global_env will fail all the tests
-            return global_env
-
-        # wrap check(..) calls into a check_results_X.append(check(..))
-        transformer = CheckCallWrapper(secret)
-        tree = transformer.visit(tree)
-        ast.fix_missing_locations(tree)
-
-        new_source = astor.to_source(tree, add_line_information=True)
-        color_source = highlight(new_source, PythonLexer(), TerminalFormatter())
-        print(color_source)
-
-        cleaned_source = compile(tree, filename="nb-ast", mode="exec")
-        try:
-            with open('/dev/null', 'w') as f, redirect_stdout(f), redirect_stderr(f):
-                exec(cleaned_source, global_env)
-        except Exception as e:
-            logging.error(e)
-            traceback.print_exc()
-            if not ignore_errors:
-                raise
 
         return global_env
 
