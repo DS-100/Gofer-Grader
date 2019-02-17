@@ -5,6 +5,7 @@ import ast
 import re
 import logging
 import traceback
+import sys
 
 try:
     from IPython.core.inputsplitter import IPythonInputSplitter
@@ -103,6 +104,7 @@ def run_this_block(source, secret, global_env, ignore_errors):
     new_source = astor.to_source(tree, add_line_information=True)
     color_source = highlight(new_source, PythonLexer(), TerminalFormatter())
     print(color_source)
+    sys.stdout.flush()
 
     cleaned_source = compile(tree, filename="nb-ast", mode="exec")
     try:
@@ -111,6 +113,7 @@ def run_this_block(source, secret, global_env, ignore_errors):
     except Exception as e:
         logging.error(e)
         traceback.print_exc()
+        sys.stderr.flush()
         if not ignore_errors:
             raise
 
