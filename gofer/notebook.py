@@ -144,6 +144,7 @@ def execute_notebook(nb, secret='secret', initial_env=None, ignore_errors=False)
         # The reason this is workaround is introduced is because once the
         # source code is parsed into an AST, there is no sense of local cells
         exec("from gofer.ok import check", global_env)
+        exec("from IPython.display import display", global_env)
 
         for cell in nb['cells']:
             if cell['cell_type'] == 'code':
