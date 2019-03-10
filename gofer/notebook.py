@@ -96,7 +96,7 @@ def ok_grade_to_check(line):
 def run_this_block(source, secret, global_env, ignore_errors):
     source_lines = []
     for l in source.split('\n'):
-        if l.startswith('!'): #ipython magic
+        if l.startswith('get_ipython()'): #ipython magic
             l = '#' + l
         source_lines.append(l)
     source = '\n'.join(source_lines)
