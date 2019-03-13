@@ -47,9 +47,9 @@ def run_doctest(name, doctest_string, global_environment):
         result = doctestrunner.summarize(verbose=True)
     # An individual test can only pass or fail
     if result.failed == 0:
-        return (True, '')
+        return True, '', result
     else:
-        return False, runresults.getvalue()
+        return False, runresults.getvalue(), result
 
 class OKTest:
     """
@@ -85,14 +85,14 @@ class OKTest:
 
     def run(self, global_environment):
         for i, t in enumerate(self.tests):
-            passed, result = run_doctest(self.name + ' ' + str(i), t, global_environment)
+            passed, result, stat = run_doctest(self.name + ' ' + str(i), t, global_environment)
             if not passed:
                 return False, OKTest.result_fail_template.render(
                     name=self.name,
                     test_code=highlight(t, PythonConsoleLexer(), HtmlFormatter(noclasses=True)),
                     test_result=result
-                )
-        return True, OKTest.result_pass_template.render(name=self.name)
+                ), stat 
+        return True, OKTest.result_pass_template.render(name=self.name), stat
 
     @classmethod
     def from_file(cls, path):
@@ -145,13 +145,14 @@ class OKTests:
         failed_tests = []
         pointed_awarded = []
         for i, t in enumerate(self.tests):
-            passed, hint = t.run(global_environment)
+            passed, hint, stat = t.run(global_environment)
             if passed:
                 passed_tests.append(t)
                 pointed_awarded.append(self.points[i])
             else:
                 failed_tests.append((t, hint))
-                pointed_awarded.append(0)
+                partial_pt = self.points[i]*(stat.attempted - stat.failed)/stat.attempted
+                pointed_awarded.append(partial_pt)
 
         # grade = len(passed_tests) / len(self.tests)
         grade = sum(pointed_awarded)
