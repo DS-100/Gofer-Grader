@@ -8,6 +8,7 @@ import string
 from contextlib import redirect_stderr, redirect_stdout
 from jinja2 import Template
 from textwrap import dedent
+from collections import defaultdict
 
 from .notebook import execute_notebook, _global_anywhere
 from .utils import hide_outputs
@@ -84,15 +85,26 @@ class OKTest:
         self.points = points
 
     def run(self, global_environment):
+        result_dict = defaultdict(list)
+        num_failed = 0
+        num_total = len(self.tests)
         for i, t in enumerate(self.tests):
             passed, result, stat = run_doctest(self.name + ' ' + str(i), t, global_environment)
+            result_dict['passed'].append(passed)
             if not passed:
-                return False, OKTest.result_fail_template.render(
+                result_dict['result'].append(OKTest.result_fail_template.render(
                     name=self.name,
                     test_code=highlight(t, PythonConsoleLexer(), HtmlFormatter(noclasses=True)),
                     test_result=result
-                ), stat 
-        return True, OKTest.result_pass_template.render(name=self.name), stat
+                ))
+                num_failed += 1
+        all_passed = all(result_dict['passed'])
+        display_ = None
+        if all_passed:
+            display_ = OKTest.result_pass_template.render(name=self.name)
+        else:
+            display_ = "\n\n".join(result_dict['result'])
+        return all_passed, display_, (num_total - num_failed) / num_total
 
     @classmethod
     def from_file(cls, path):
@@ -151,8 +163,7 @@ class OKTests:
                 pointed_awarded.append(self.points[i])
             else:
                 failed_tests.append((t, hint))
-                partial_pt = self.points[i]*(stat.attempted - stat.failed)/stat.attempted
-                pointed_awarded.append(partial_pt)
+                pointed_awarded.append(stat*self.points[i])
 
         # grade = len(passed_tests) / len(self.tests)
         grade = sum(pointed_awarded)
