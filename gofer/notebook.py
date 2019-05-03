@@ -98,8 +98,8 @@ def run_this_block(source, secret, global_env, ignore_errors):
     for l in source.split('\n'):
         if l.startswith('get_ipython()'): #ipython magic
             l = '#' + l
-        # if l.startswith('sns.'): #seaborn plots
-        #     l = '#' + l
+        if l.startswith('sns.regplot'): #seaborn plots
+            l = '#' + l
         source_lines.append(l)
     source = '\n'.join(source_lines)
 
