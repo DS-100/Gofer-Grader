@@ -10,19 +10,19 @@ except ImportError:
 
 
 def find_check_definition(tree):
-    """Given an AST for a source, check for definitions of `check` function
+    """Given an AST for a source, check for definitions of `gofer_check` function
 
     Returns True if such a definition is found, False otherwise."""
     for stmt in ast.walk(tree):
         if not isinstance(stmt, ast.FunctionDef):
             continue
-        if stmt.name == 'check':
+        if stmt.name == 'gofer_check':
             return True
     return False
 
 
 def find_check_assignment(tree):
-    """Given an AST for a source, check for variable redefinition of `check`
+    """Given an AST for a source, check for variable redefinition of `gofer_check`
 
     Returns True if such a definition is found, False otherwise."""
     for stmt in ast.walk(tree):
@@ -37,7 +37,7 @@ def find_check_assignment(tree):
                 target_names += [t.id for t in target.elts]
             else:
                 target_names.append(target.id)
-        if 'check' in target_names:
+        if 'gofer_check' in target_names:
             return True
     return False
 
@@ -64,7 +64,7 @@ class CheckCallWrapper(ast.NodeTransformer):
         # test case is if check is .check
         if isinstance(node.func, ast.Attribute):
             return node
-        elif node.func.id == 'check':
+        elif node.func.id == 'gofer_check':
             return self.node_constructor(node)
         else:
             return node

@@ -263,16 +263,16 @@ def grade_notebook(notebook_path, tests_glob=None):
     return score
 
 
-def check(test_file_path, global_env=None):
+def gofer_check(test_file_path, global_env=None):
     """
     check global_env against given test_file in oktest format
 
     If global_env is none, the global environment of the calling
     function is used. The following two calls are equivalent:
 
-    check('tests/q1.py')
+    gofer_check('tests/q1.py')
 
-    check('tests/q1.py', globals())
+    gofer_check('tests/q1.py', globals())
 
     Returns a TestResult object.
     """
